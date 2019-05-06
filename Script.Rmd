@@ -15,6 +15,11 @@ library(sf)
 library(viridis)
 ```
 
+Acquire shapefiles from tidycensus.
+Remove the variables associated with tidycensus.
+
+The last line in here should be used to assign the value of the variables that Daniel creates using his analysis.
+
 ```{r}
 states <- get_decennial(geography = "state",
         variables = "H043A001",
@@ -25,9 +30,26 @@ state_shapes <- states
 
 state_shapes[,3:4] <- NULL
 
+# HERE IS WHERE YOU NEED TO ASSIGN THE VALUES OF THE ANALYSIS BY STATE
 state_shapes$value <- rnorm(51,5,1)
 
-state_shapes_ext <- state_shapes %>% filter(., NAME %in% c("Alaska","Hawaii"))
+# CREATE FUNCTION TO ASSIGN COLOR VALUES FOR EACH VARIABLE HERE BEFORE THEY ARE SUBSET
+```
+
+This is a break apart of the contiguous United States from Alaska and Hawaii in order to make a more useful visualization with room for individuals to read the results.
+
+Inset Maps:
+https://stackoverflow.com/questions/34255534/inset-map-using-ggplot2
+https://stackoverflow.com/questions/31620379/using-grid-newpage-to-create-ggplot-map-with-inset-map
+https://stackoverflow.com/questions/21269098/create-an-inset-map-within-a-larger-map-in-r
+
+The previous links provide examples on how to create inset maps. This will be helpful with dealing with Alaska and Hawaii.
+
+As such the following section of code splitting apart those states is helpful.
+
+```{r}
+state_shapes_ak <- state_shapes %>% filter(., NAME == "Alaska")
+state_shapes_hi <- state_shapes %>% filter(., NAME == "Hawaii")
 
 state_shapes_cont <- state_shapes %>% filter(., !NAME %in% c("Alaska","Hawaii"))
 ```
@@ -55,13 +77,23 @@ ggplot() +
 
 ```{r}
 ggplot() +
-  geom_sf(state_shapes_ext,
+  geom_sf(state_shapes_ak,
           mapping=aes(fill=value, color=value),
           inherit.aes=F,
           alpha=.7) +
   scale_fill_viridis(option = "magma") + 
   scale_color_viridis(option = "magma") + 
-  coord_sf(xlim = c(-179,-130), ylim = c(70,20), clip = "off")
+  coord_sf(xlim=c(-179,-130))
 ```
 
+```{r}
+ggplot() +
+  geom_sf(state_shapes_hi,
+          mapping=aes(fill=value, color=value),
+          inherit.aes=F,
+          alpha=.7) +
+  scale_fill_viridis(option = "magma") + 
+  scale_color_viridis(option = "magma")
+```
 
+Given the color production using the standard commands, indicates that we may have to use a special formula to create the color mapping for each state. Cannot trust ggplot to do it individually without the proper context. This should be done once the variables are added to the data set.
