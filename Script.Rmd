@@ -1,0 +1,67 @@
+---
+title: "Script"
+author: "Drazzel Feliu"
+date: "5/6/2019"
+output: html_document
+---
+
+```{r}
+rm(list=ls())
+
+library(tidyverse)
+library(ggplot2)
+library(tidycensus)
+library(sf)
+library(viridis)
+```
+
+```{r}
+states <- get_decennial(geography = "state",
+        variables = "H043A001",
+        geometry = T,
+        year = 1990)
+
+state_shapes <- states
+
+state_shapes[,3:4] <- NULL
+
+state_shapes$value <- rnorm(51,5,1)
+
+state_shapes_ext <- state_shapes %>% filter(., NAME %in% c("Alaska","Hawaii"))
+
+state_shapes_cont <- state_shapes %>% filter(., !NAME %in% c("Alaska","Hawaii"))
+```
+
+```{r}
+ggplot() +
+  geom_sf(state_shapes,
+          mapping=aes(fill=value, color=value),
+          inherit.aes=F,
+          alpha=.7) +
+  scale_fill_viridis(option = "magma") + 
+  scale_color_viridis(option = "magma") + 
+  coord_sf(xlim = c(-179,-70), ylim = c(70,20), clip = "off")
+```
+
+```{r}
+ggplot() +
+  geom_sf(state_shapes_cont,
+          mapping=aes(fill=value, color=value),
+          inherit.aes=F,
+          alpha=.7) +
+  scale_fill_viridis(option = "magma") + 
+  scale_color_viridis(option = "magma")
+```
+
+```{r}
+ggplot() +
+  geom_sf(state_shapes_ext,
+          mapping=aes(fill=value, color=value),
+          inherit.aes=F,
+          alpha=.7) +
+  scale_fill_viridis(option = "magma") + 
+  scale_color_viridis(option = "magma") + 
+  coord_sf(xlim = c(-179,-130), ylim = c(70,20), clip = "off")
+```
+
+
